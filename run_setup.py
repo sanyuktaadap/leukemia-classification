@@ -17,8 +17,8 @@ TEST_SPLIT = 0.05
 def get_class_path(index):
     return os.path.join(PATH_PREFIX, CLASS_NAMES[index])
 
-def get_class_split_path(index):
-    return os.path.join(SPLIT_PATH_PREFIX, CLASS_NAMES[index])
+def get_class_split_path(index, split):
+    return os.path.join(SPLIT_PATH_PREFIX, split, CLASS_NAMES[index])
     
 for i in range(len(CLASS_NAMES)):
     print(f"Splitting class - {CLASS_NAMES[i]}")
@@ -36,14 +36,26 @@ for i in range(len(CLASS_NAMES)):
         filenames[train_len + val_len:]
     )
     
-    # Creating destination path folders if required.
-    dest_path = get_class_split_path(i)
-    os.makedirs(dest_path, exist_ok=True) 
-    
+    # Helper function to copy
+    def copy_file_to_split(name, split):
+        src_file_path = os.path.join(get_class_path(i), name)
+        dest_path = get_class_split_path(i, split=split)
+
+        # Creating destination path folders if required.
+        os.makedirs(dest_path, exist_ok=True)
+
+        dest_file_path = os.path.join(dest_path, name)
+        shutil.copyfile(src_file_path, dest_file_path)
+         
     # Copying files to dedicated folder after splitting
-    for split in (train_names, val_names, test_names):
-        print("Copying split")
-        for name in tqdm(split):
-            src_file_path = os.path.join(get_class_path(i), name)
-            dest_file_path = os.path.join(get_class_split_path(i), name)
-            shutil.copyfile(src_file_path, dest_file_path)
+    print("Copying train split")
+    for name in tqdm(train_names):
+        copy_file_to_split(name, split="train")
+       
+    print("Copying val split")
+    for name in tqdm(val_names):
+        copy_file_to_split(name, split="val")
+        
+    print("Copying test split")
+    for name in tqdm(test_names):
+        copy_file_to_split(name, split="test")
