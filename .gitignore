@@ -160,5 +160,7 @@ cython_debug/
 #.idea/
 
 *.pdf
+dataset/
 dataset/*
 data-split/*
+data-split/
