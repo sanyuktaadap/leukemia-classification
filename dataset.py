@@ -1,20 +1,13 @@
-# Retrieve paths of data inside sub folders
 import glob
 import os
-# Image processing library
-import cv2
-import numpy as np
-# To create the Dataset class
-import torch
+from PIL import Image
 from torch.utils.data import Dataset
 
 class LeukemiaDataset(Dataset):
-    """_summary_
-
+    """Leukemia Dataset
     Args:
         Dataset : Parent torch dataset class
     """
-    
     def __init__(
         self, 
         imgs_path, 
@@ -23,7 +16,6 @@ class LeukemiaDataset(Dataset):
         class_map={"benign" : 0, "early": 1, "pre": 2, "pro": 3},
     ):
         """Initializes a leukemia dataset instance
-
         Args:
             imgs_path (str): Path to the folder containing classwise images
             img_dim (tuple): Tuple containing final image height and width
@@ -31,7 +23,7 @@ class LeukemiaDataset(Dataset):
             class_map (dict, optional): # Provides the mapping from the name to the number 
                 Defaults to {"Benign" : 0, "Early": 1, "Pre": 2, "Pro": 3}.
         """
-    
+        
         # Path to training data
         self.imgs_path = imgs_path
         self.class_map = class_map
@@ -39,7 +31,6 @@ class LeukemiaDataset(Dataset):
         self.transforms = transforms
         # List containing paths to all the images
         self.data = []
-        
         # List of all folders inside imgs_path
         file_list = glob.glob(os.path.join(self.imgs_path, "*"))
         # Iterate over all the classes in file list
@@ -53,26 +44,27 @@ class LeukemiaDataset(Dataset):
                 self.data.append((img_path, class_name))
         
     def __len__(self):
-        """Gets the lengtht of the dataset
+        """Gets the length of the dataset
 
         Returns:
-            int: length of the dataset
+            int: total number of data points
         """
         return len(self.data)
     
     def __getitem__(self, idx):
+        """Gets the indexed items from the dataset
+        Args:
+            idx (int): index number
+        Returns:
+            vector, int: indexed image with its corresponding label
+        """
         # idx - indexing data for accessibility 
         img_path, class_name = self.data[idx]
-        # Loads an image from the given image_path
-        # OpenCV reads image by default as BGR
-        # Torch wants it to be RGB
-        img_tensor = cv2.cvtColor(cv2.imread(img_path), cv2.BGR2RGB)
         # Assigning ids to each class (number, not name of the class)
         class_id = self.class_map[class_name]
-        # Convert numpy array to a torch tensor
-        # img_tensor = torch.from_numpy(img)
-        # NumPy: BGR (Width, Height, Channels)
-        # Permute function changes the ordering of the dimensions (012 to 201)
-        # img_tensor = img_tensor.permute(2, 0, 1)
-        class_id = torch.tensor([class_id])
-        return img_tensor, class_id
+        # Loads an image from the given image_path
+        img = Image.open(img_path)
+        if self.transforms:
+            img = self.transforms(img)
+            
+        return img, class_id
