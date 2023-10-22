@@ -9,9 +9,9 @@ from tqdm import tqdm
 PATH_PREFIX = 'F:\SANYU\Projects\leukemia-classification\dataset'
 SPLIT_PATH_PREFIX = 'F:\SANYU\Projects\leukemia-classification\data-split'
 CLASS_NAMES = ['Benign', 'Early', 'Pre', 'Pro']
-TRAIN_SPLIT = 0.9
-VAL_SPLIT = 0.05
-TEST_SPLIT = 0.05
+TRAIN_SPLIT = 0.64
+VAL_SPLIT = 0.16
+TEST_SPLIT = 0.2
 
 # Util functions
 def get_class_path(index):

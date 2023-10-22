@@ -36,10 +36,7 @@ class LeukemiaClassifier(nn.Module):
             nn.ReLU(inplace=True),
         )
 
-        self.classifier = nn.Sequential(
-            nn.Linear(self.n_neurons, self.n_classes),
-            nn.Softmax(),
-        )
+        self.classifier = nn.Linear(self.n_neurons, self.n_classes)
 
     def forward(self, x, is_train=True):
         assert x.shape[1:] == (3, 224, 224), \
