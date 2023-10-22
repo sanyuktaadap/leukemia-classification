@@ -1,119 +1,103 @@
 from tqdm import tqdm
-
-# Torch imports
 import torch
-import torch.nn as nn
-import torch.optim as optim
-from torchvision.transforms import v2
-from torch.utils.tensorboard import SummaryWriter
-
-# Local imports
-from model import LeukemiaClassifier
+# Torch imports
 from metrics import get_metrics
 
-# Constants
-CKPT_PATH = "/checkpoints/"
-IMG_SIZE = (224, 224)
-N_CLASSES = 4
+def run_epoch(dataloader,
+              model, 
+              device, 
+              loss_fn,
+              logger, 
+              opt=None, 
+              to_run="train", 
+              n_classes=4, 
+              step=0):
+    """_summary_
 
-# Hyperparams
-lr = None
-momentum = None
-n_epochs = None
+    Args:
+        dataloader (_type_): _description_
+        model (_type_): _description_
+        device (_type_): _description_
+        loss_fn (_type_): _description_
+        logger (_type_): _description_
+        opt (_type_, optional): _description_. Defaults to None.
+        to_run (str, optional): _description_. Defaults to "train".
+        n_classes (int, optional): _description_. Defaults to 4.
+        step (int, optional): _description_. Defaults to 0.
 
-transforms = v2.Compose([
-    v2.ToImage(),
-    v2.Resize(size=IMG_SIZE),
-    v2.RandomRotation(degrees=20),
-    v2.RandomHorizontalFlip(),
-    v2.RandomVerticalFlip(),
-    v2.ColorJitter(brightness=0.1, contrast=0.1),
-    v2.ToDtype(torch.float, scale=True),
-])
-
-device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
-model = LeukemiaClassifier()
-loss_fn = nn.CrossEntropyLoss()
-opt = optim.SGD(model.parameters(), lr=lr, momentum=momentum)
-
-model = model.to(device)
-model.train()
-
-global_step = 0
-
-logger = SummaryWriter()
-
-def run_model(n_epochs=n_epochs,
-              dataloader=None,
-              to_run=None):
+    Returns:
+        _type_: _description_
+    """
     
-    for i in range(n_epochs):
-        loss_list = []
-        acc_list = []
-        sens_list = []
-        prec_list = []
-        rec_list = []
-        f1_list = []
+    loss_list = []
+    acc_list = []
+    spec_list = []
+    prec_list = []
+    rec_list = []
+    f1_list = []
 
-        for x, y in tqdm(dataloader):            
+    for x, y in tqdm(dataloader):
 
-            # Moving input to device
-            x = x.to(device)
-            y = y.to(device)
-            
-            # Running forward propagation
-            # x (b, c, h, w) -> (b, 4)
-            y_hat = model(x)
+        # Moving input to device
+        x = x.to(device)
+        y = y.to(device)
 
-            loss = loss_fn(y_hat, y)
+        # Running forward propagation
+        # x (b, c, h, w) -> (b, 4)
+        y_hat = model(x)
 
-            if to_run=="train":
-                # Make all gradients zero.
-                opt.zero_grad()
+        loss = loss_fn(y_hat, y)
 
-                # Run backpropagation
-                loss.backward()
+        if to_run == "train":
+            # Make all gradients zero.
+            opt.zero_grad()
 
-                # Update parameters
-                opt.step()
+            # Run backpropagation
+            loss.backward()
 
-            loss_list.append(loss.item())
-            
-            # detach removes y_hat from the original computational graph which might be
-            # on gpu.
-            y_hat = y_hat.detach().cpu()
-            y = y.cpu()
-            
-            # Compute metrics
-            acc = get_metrics(y, y_hat, metric="accuracy")
-            acc_list.append(acc)
-            
-            sens = get_metrics(y, y_hat, metric="sensitivity")
-            sens_list.append(sens)
-            
-            prec = get_metrics(y, y_hat, metrics="precision")
-            prec_list.append(prec)
-            
-            rec = get_metrics(y, y_hat, metrics="recall")
-            rec_list.append(rec)   
-            
-            f1 = get_metrics(y, y_hat, metric="f1")
-            f1_list.append(f1)
-            
-            logger.add_scalar(f"{to_run}/loss", loss.item(), global_step)
-            logger.add_scalar(f"{to_run}/accuracy", acc, global_step)
-            logger.add_scalar(f"{to_run}/sensitivity", sens, global_step)
+            # Update parameters
+            opt.step()
 
-            for j in range(N_CLASSES):
-                logger.add_scalar(f"{to_run}/precision/{j}", prec[j], global_step)
-                logger.add_scalar(f"{to_run}/recall/{j}", rec[j], global_step)
-                logger.add_scalar(f"{to_run}/f1/{j}", f1[j], global_step)
+        loss_list.append(loss.item())
+
+        # detach removes y_hat from the original computational graph which might be
+        # on gpu.
+        y_hat = y_hat.detach().cpu()
+        y = y.cpu()
+
+        # Compute metrics
+        acc = get_metrics(y_hat, y, metric="accuracy")
+        acc_list.append(acc)
+
+        spec = get_metrics(y_hat, y, metric="specificity")
+        spec_list.append(spec)
+
+        prec = get_metrics(y_hat, y, metric="precision")
+        prec_list.append(prec)
+
+        rec = get_metrics(y_hat, y, metric="recall")
+        rec_list.append(rec)
+
+        f1 = get_metrics(y_hat, y, metric="f1")
+        f1_list.append(f1)
+
+        logger.add_scalar(f"{to_run}/loss", loss.item(), step)
+        logger.add_scalar(f"{to_run}/accuracy", acc, step)
+
+        for j in range(n_classes):
+            logger.add_scalar(f"{to_run}/precision/{j}", prec[j], step)
+            logger.add_scalar(f"{to_run}/recall/{j}", rec[j], step)
+            logger.add_scalar(f"{to_run}/f1/{j}", f1[j], step)
+            logger.add_scalar(f"{to_run}/specificity/{j}",
+                              spec[j], step)
+
+        step += 1
+
+    avg_loss = torch.Tensor(loss_list).mean()
+    avg_acc = torch.Tensor(acc_list).mean()
+    avg_spec = torch.vstack(spec_list).mean()
+    avg_p = torch.vstack(prec_list).mean()
+    avg_r = torch.vstack(rec_list).mean()
+    avg_f1 = torch.vstack(f1_list).mean()
         
-            global_step += 1
-        
-        # Print metrics - avg for all
-        print(f"Epoch {i} completed - loss, acc, p, r, f1")
-
-        torch.save(model.state_dict(), CKPT_PATH + f"checkpoint{i}.pt")
-        
-    return print(f'{to_run}, "completed successfully!!!')
+    return avg_loss, avg_acc, avg_spec, avg_p, avg_r, avg_f1
