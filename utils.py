@@ -9,7 +9,6 @@ def run_epoch(dataloader,
               loss_fn,
               logger, 
               opt=None, 
-              to_run="train", 
               n_classes=4, 
               step=0):
     """_summary_
@@ -48,12 +47,15 @@ def run_epoch(dataloader,
 
         loss = loss_fn(y_hat, y)
 
-        if to_run == "train":
+        if opt is not None:
             # Make all gradients zero.
             opt.zero_grad()
 
             # Run backpropagation
             loss.backward()
+
+            # Clipping gradients to 0.01
+            torch.nn.utils.clip_grad_norm_(model.parameters(), 0.01)
 
             # Update parameters
             opt.step()
@@ -81,15 +83,18 @@ def run_epoch(dataloader,
         f1 = get_metrics(y_hat, y, metric="f1")
         f1_list.append(f1)
 
-        logger.add_scalar(f"{to_run}/loss", loss.item(), step)
-        logger.add_scalar(f"{to_run}/accuracy", acc, step)
+        logger.add_scalar(f"loss", loss.item(), step)
+        logger.add_scalar(f"accuracy", acc, step)
+        logger.add_scalar(f"specificity", spec.mean(), step)
+        logger.add_scalar(f"precision", prec.mean(), step)
+        logger.add_scalar(f"recall", rec.mean(), step)
+        logger.add_scalar(f"f1", f1.mean(), step)
 
         for j in range(n_classes):
-            logger.add_scalar(f"{to_run}/precision/{j}", prec[j], step)
-            logger.add_scalar(f"{to_run}/recall/{j}", rec[j], step)
-            logger.add_scalar(f"{to_run}/f1/{j}", f1[j], step)
-            logger.add_scalar(f"{to_run}/specificity/{j}",
-                              spec[j], step)
+            logger.add_scalar(f"precision/{j}", prec[j], step)
+            logger.add_scalar(f"recall/{j}", rec[j], step)
+            logger.add_scalar(f"f1/{j}", f1[j], step)
+            logger.add_scalar(f"specificity/{j}", spec[j], step)
 
         step += 1
 

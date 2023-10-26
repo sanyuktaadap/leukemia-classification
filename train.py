@@ -12,17 +12,19 @@ from model import LeukemiaClassifier
 from utils import run_epoch
 
 # Constants
+RUN_ID = "5"
 TRAIN_IMG_PATH = "./data-split/train"
 VAL_IMG_PATH = "./data-split/val"
-CKPT_PATH = "./checkpoints/"
+CKPT_PATH = os.path.join("./checkpoints/", RUN_ID)
+LOG_PATH = os.path.join("./logs", RUN_ID)
 IMG_SIZE = (224, 224)
 N_CLASSES = 4
 
 # Hyperparams
-lr = 0.01
-momentum = 0.9
+lr = 1e-4
+lmbda = 1e-5
 batch_size = 16
-n_epochs = 50
+n_epochs = 40
 
 # Load Train data
 train_transforms = v2.Compose([
@@ -51,18 +53,25 @@ val_transforms = v2.Compose([
 val_dataset = LeukemiaDataset(imgs_path=VAL_IMG_PATH, transforms=val_transforms)
 val_dataloader = DataLoader(val_dataset, 
                             batch_size=batch_size, 
-                            shuffle=False, 
+                            shuffle=True, 
                             num_workers=2)
 
 device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
 model = LeukemiaClassifier()
 loss_fn = nn.CrossEntropyLoss()
-opt = optim.SGD(model.parameters(), lr=lr, momentum=momentum)
-logger = SummaryWriter()
+opt = optim.Adam(model.parameters(), lr=lr, weight_decay=lmbda)
+train_logger = SummaryWriter(log_dir=os.path.join(LOG_PATH, "train"))
+val_logger = SummaryWriter(log_dir=os.path.join(LOG_PATH, "val"))
 
 model = model.to(device)
 
 global_step = 0
+
+os.makedirs(CKPT_PATH, exist_ok=True)
+
+# Logging model graph
+x, _ = next(iter(train_dataloader))
+train_logger.add_graph(model, x.to(device))
 
 # Training
 for i in range(n_epochs):
@@ -73,7 +82,7 @@ for i in range(n_epochs):
         model, 
         device, 
         loss_fn,
-        logger, 
+        train_logger, 
         opt=opt,
         step=i*len(train_dataloader)
     )
@@ -85,8 +94,7 @@ for i in range(n_epochs):
         model, 
         device, 
         loss_fn,
-        logger, 
-        to_run="val", 
+        val_logger, 
         step=i*len(val_dataloader)
     )
     
@@ -108,5 +116,21 @@ for i in range(n_epochs):
         f"Recall - {val_metrics[4]}, " +
         f"F1 - {val_metrics[5]}"
     )    
+
+    # Logging per epoch so that traning and val can be compared properly
+    # Because of equal no. of data points on the graph
+    train_logger.add_scalar(f"epoch/loss", train_metrics[0], i)
+    train_logger.add_scalar(f"epoch/accuracy", train_metrics[1], i)
+    train_logger.add_scalar(f"epoch/specificity", train_metrics[2], i)
+    train_logger.add_scalar(f"epoch/precision", train_metrics[3], i)
+    train_logger.add_scalar(f"epoch/recall", train_metrics[4], i)
+    train_logger.add_scalar(f"epoch/f1", train_metrics[5], i)
+
+    val_logger.add_scalar(f"epoch/loss", val_metrics[0], i)
+    val_logger.add_scalar(f"epoch/accuracy", val_metrics[1], i)
+    val_logger.add_scalar(f"epoch/specificity", val_metrics[2], i)
+    val_logger.add_scalar(f"epoch/precision", val_metrics[3], i)
+    val_logger.add_scalar(f"epoch/recall", val_metrics[4], i)
+    val_logger.add_scalar(f"epoch/f1", val_metrics[5], i)
 
     torch.save(model.state_dict(), os.path.join(CKPT_PATH, f"checkpoint{i}.pt"))    

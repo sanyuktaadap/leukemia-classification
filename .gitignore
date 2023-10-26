@@ -164,3 +164,4 @@ dataset/
 dataset/*
 data-split/*
 data-split/
+*.zip

@@ -3,7 +3,7 @@ import torch.nn.functional as F
 import torch.hub as hub
 
 class LeukemiaClassifier(nn.Module):
-    def __init__(self, n_classes=4, n_neurons=128, dropout=0.2):
+    def __init__(self, n_classes=4, n_neurons=64, dropout=0.2):
         super().__init__()
 
         self.n_classes = n_classes
