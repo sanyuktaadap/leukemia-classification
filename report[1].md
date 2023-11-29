@@ -1,4 +1,4 @@
-﻿**Deep Learning Based B-ALL Classification**
+# Deep Learning Based B-ALL Classification
 
 ***Reference**:*
 Ghadezadeh, M., Aria, M., Hosseini, A., & Asadi, F. (2021). A fast and efficient CNN model for B-ALL diagnosis and its subtypes classification using peripheral blood smear images. International Journal of Intelligent Systems. DOI: 10.1002/int.22753.
@@ -7,11 +7,15 @@ Ghadezadeh, M., Aria, M., Hosseini, A., & Asadi, F. (2021). A fast and efficient
 
 ***Task***: Classifying ALL subtypes into-
 
-![](Aspose.Words.e4aa8cc6-e5f1-43ec-87a3-f96d20a864e0.001.png)
+![image](https://github.com/sanyuktaadap/leukemia-classification/assets/126644146/662adbf1-84b0-4218-b662-df74a4f30cd7)
+
+
 
 ***Structure of the Model:***
 
-![](Aspose.Words.e4aa8cc6-e5f1-43ec-87a3-f96d20a864e0.002.png)
+![image](https://github.com/sanyuktaadap/leukemia-classification/assets/126644146/0e97dd0b-c46a-4c3e-8613-d3dc87d26b2e)
+
+
 
 - Built the model from scratch in Python using PyTorch
 - Pre-processing Block:
@@ -25,13 +29,17 @@ Ghadezadeh, M., Aria, M., Hosseini, A., & Asadi, F. (2021). A fast and efficient
 - It was initialized with weights pre-trained on the ImageNet dataset.
 - The FE takes an image and gives a feature embedding of size 1920.
 
-![](Aspose.Words.e4aa8cc6-e5f1-43ec-87a3-f96d20a864e0.003.png)
+![image](https://github.com/sanyuktaadap/leukemia-classification/assets/126644146/6ed4a376-f36c-4746-97ef-a036e53da127)
+
+
 
 ***Classification Block:***
 
 - Classifier takes the feature embedding and runs it through two fully connected layers of size 128.
 
-![](Aspose.Words.e4aa8cc6-e5f1-43ec-87a3-f96d20a864e0.004.png)
+![image](https://github.com/sanyuktaadap/leukemia-classification/assets/126644146/06948179-1df5-4ee9-8e97-ae0d462d7b02)
+
+
 
 ***Results*:**
 
@@ -41,13 +49,22 @@ Ghadezadeh, M., Aria, M., Hosseini, A., & Asadi, F. (2021). A fast and efficient
   - Optimizer: Adam
   - Regularization: L2 + Dropout
 
-![](Aspose.Words.e4aa8cc6-e5f1-43ec-87a3-f96d20a864e0.005.png)
+Training Loss
+![image](https://github.com/sanyuktaadap/leukemia-classification/assets/126644146/fa4caba1-2d91-46cc-912d-72560a75412d)
 
-![](Aspose.Words.e4aa8cc6-e5f1-43ec-87a3-f96d20a864e0.006.png)
+Validation Loss
+![image](https://github.com/sanyuktaadap/leukemia-classification/assets/126644146/3c07efc0-bddf-4d6c-9498-ccec8538749c)
+
+
 
 - Metrics for the Test Set are as follows:
+  - Accuracy: 99.6%
+  - Specificity: 99.9%
+  - Precision: 98.0%
+  - Recall: 97.8%
+  - F1 Score: 97.8%
 
-![](Aspose.Words.e4aa8cc6-e5f1-43ec-87a3-f96d20a864e0.007.png)
+
 
 
 
