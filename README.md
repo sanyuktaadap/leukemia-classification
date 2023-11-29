@@ -7,3 +7,5 @@ Using Peripheral Blood Smear Images to diagnose Breast Cancer as benign or malig
 #### Train-Val-Test Scripts
 - [Training and Validation](./train.py)
 - [Testing](./test.py)
+
+Details of the study can be found in the [report](./report.md).
