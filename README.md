@@ -1,6 +1,6 @@
 # Deep Learning Based B-ALL Classification
 
-Using Peripheral Blood Smear Images to diagnose Breast Cancer as benign or malignant, and further classify three stages of malignant B-cell development in the bone marrow.
+Using Peripheral Blood Smear Images to diagnose Acute Lymphoblastic Leukemia (ALL) as benign or malignant, and further classify three stages of malignant B-cell development in the bone marrow.
 
 - To set up data for ML, split data using [run_setup](./run_setup.py) script
 
