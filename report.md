@@ -35,7 +35,7 @@ Ghadezadeh, M., Aria, M., Hosseini, A., & Asadi, F. (2021). A fast and efficient
 
 ***Classification Block:***
 
-- Classifier takes the feature embedding and runs it through two fully connected layers of size 128.
+- Classifier takes the feature embedding and runs it through two fully connected layers of size 64.
 
 ![image](https://github.com/sanyuktaadap/leukemia-classification/assets/126644146/06948179-1df5-4ee9-8e97-ae0d462d7b02)
 
