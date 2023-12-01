@@ -165,3 +165,4 @@ dataset/*
 data-split/*
 data-split/
 *.zip
+test.py
