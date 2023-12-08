@@ -51,9 +51,9 @@ val_transforms = v2.Compose([
 ])
 
 val_dataset = LeukemiaDataset(imgs_path=VAL_IMG_PATH, transforms=val_transforms)
-val_dataloader = DataLoader(val_dataset, 
-                            batch_size=batch_size, 
-                            shuffle=True, 
+val_dataloader = DataLoader(val_dataset,
+                            batch_size=batch_size,
+                            shuffle=True,
                             num_workers=2)
 
 device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
@@ -79,43 +79,43 @@ for i in range(n_epochs):
     # run one epoch of training
     train_metrics = run_epoch(
         train_dataloader,
-        model, 
-        device, 
+        model,
+        device,
         loss_fn,
-        train_logger, 
+        train_logger,
         opt=opt,
         step=i*len(train_dataloader)
     )
-    
-    model.eval()    
-    # run one epoch of validation    
+
+    model.eval()
+    # run one epoch of validation
     val_metrics = run_epoch(
         val_dataloader,
-        model, 
-        device, 
+        model,
+        device,
         loss_fn,
-        val_logger, 
+        val_logger,
         step=i*len(val_dataloader)
     )
-    
+
     print(f"Epoch {i}:")
     print(
-        f"Train: Loss - {train_metrics[0]}, " + 
+        f"Train: Loss - {train_metrics[0]}, " +
         f"Accuracy - {train_metrics[1]}, " +
         f"Specificity - {train_metrics[2]}, " +
         f"Precision - {train_metrics[3]}, " +
         f"Recall - {train_metrics[4]}, " +
         f"F1 - {train_metrics[5]}"
     )
-    
+
     print(
-        f"Val: Loss - {val_metrics[0]}, " + 
+        f"Val: Loss - {val_metrics[0]}, " +
         f"Accuracy - {val_metrics[1]}, " +
         f"Specificity - {val_metrics[2]}, " +
         f"Precision - {val_metrics[3]}, " +
         f"Recall - {val_metrics[4]}, " +
         f"F1 - {val_metrics[5]}"
-    )    
+    )
 
     # Logging per epoch so that traning and val can be compared properly
     # Because of equal no. of data points on the graph
@@ -133,4 +133,4 @@ for i in range(n_epochs):
     val_logger.add_scalar(f"epoch/recall", val_metrics[4], i)
     val_logger.add_scalar(f"epoch/f1", val_metrics[5], i)
 
-    torch.save(model.state_dict(), os.path.join(CKPT_PATH, f"checkpoint{i}.pt"))    
+    torch.save(model.state_dict(), os.path.join(CKPT_PATH, f"checkpoint{i}.pt"))
